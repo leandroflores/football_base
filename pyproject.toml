@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "football-base"
+version = "0.1.0"
+description = ""
+authors = ["leandroflores7 <leandroflores7@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+requests = "^2.32.3"
+fastapi = "^0.112.2"
+uvicorn = "^0.30.6"
+pytest = "^8.3.2"
+sqlalchemy = "^2.0.32"
+postgis = "^1.0.4"
+postgres = "^4.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

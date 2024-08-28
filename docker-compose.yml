@@ -1,0 +1,26 @@
+version: "3"
+services:
+  web:
+    build: .
+    entrypoint: uvicorn football_base.main:app --host 0.0.0.0 --port 7000 --reload
+    volumes:
+      - ./football_base:/code/football_base
+    ports:
+      - 7000:7000
+    env_file:
+      - .env
+    depends_on:
+      - db
+  db:
+    image: postgis/postgis:16-3.4-alpine
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    ports:
+      - 5405:5436
+    environment:
+      - POSTGRES_USER=footballdev
+      - POSTGRES_PASSWORD=123
+      - POSTGRES_DB=football
+volumes:
+  postgres_data:
