@@ -1,10 +1,19 @@
 import abc
 
+from football_base.config import get_postgres_url
 from football_base.db import InMemoryDataBase
 from football_base.football.adapters import repository
 
-MEMORY_BD: InMemoryDataBase = InMemoryDataBase()
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
+MEMORY_BD: InMemoryDataBase = InMemoryDataBase()
+SESSION_FACTORY = sessionmaker(
+    bind=create_engine(
+        get_postgres_url()
+    )
+)
+    
 class AbstractUnitOfWork(abc.ABC):
     repository: repository.AbstractRepository
 
@@ -40,3 +49,24 @@ class InMemoryUnitOfWork(AbstractUnitOfWork):
 
     def rollback(self):
         ...
+
+class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
+
+    def __init__(self, session_factory = SESSION_FACTORY) -> None:
+        self.session_factory = session_factory
+
+    def __enter__(self) -> AbstractUnitOfWork:
+        self.session = self.session_factory()
+        self.session.expire_on_commit = False
+        self.repository = repository.SQLAlchemyRepository(self.session)
+        return super().__enter__()
+    
+    def __exit__(self, *args):
+        super().__exit__(*args)
+        self.session.close()
+
+    def commit(self):
+        self.session.commit()
+
+    def rollback(self):
+        self.session.rollback()

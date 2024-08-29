@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-from datetime import date, datetime
-from typing import Dict, Optional
+from datetime import datetime
+from typing import Optional
 
 @dataclass
 class League:
@@ -9,7 +9,7 @@ class League:
     season: str
     details: str
     country: str
-    games: set["Game"] # type: Set[Game]
+    games: list["Match"] # type: Set[Game]
 
     @staticmethod
     def from_dict(adict: dict) -> "League":
@@ -19,7 +19,7 @@ class League:
             season=adict["season"],
             details=adict["details"],
             country=adict["country"],
-            games=(),
+            games=[],
         )
 
     def get_status(self) -> dict:
@@ -28,14 +28,19 @@ class League:
             "season": self.season,
             "country": self.country,
         }
+    
+    def get_attributes(self) -> dict:
+        attributes: dict = self.__dict__.copy()
+        del attributes["id"]
+        return attributes
 
-    def add_game(self, game: "Game"):
+    def add_game(self, game: "Match"):
         self.games.append(game)
     
-    def games_list(self) -> list["Game"]:
-        return list(self.games)
+    def games_list(self) -> list["Match"]:
+        return self.games
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return self.__dict__
 
     def __eq__(self, object: object) -> bool:
@@ -83,7 +88,7 @@ class Team:
         )
     
 @dataclass
-class Game:
+class Match:
     id: Optional[int]
     league: League
     round: str

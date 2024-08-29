@@ -1,6 +1,7 @@
 import abc
 
 from enum import Enum
+from football_base.utils import update_attributes
 from football_base.football.domain.entities import League
 from football_base.football.domain.readers import LeagueReader
 from football_base.football.service_layer.unit_of_work import AbstractUnitOfWork
@@ -65,3 +66,48 @@ class InsertLeagueUseCase(UseCase):
     
         message = f"League '{league_name}' successfully created."
         return self.response(Status.CREATED, message)
+
+class GetLeagueUseCase(UseCase):
+
+    def execute(self, parameters: dict) -> dict:
+
+        league_id: int = parameters["league_id"]
+        with self.unit_of_work:
+            league = self.unit_of_work.repository.get_league_by_id(league_id)
+
+            if not league:
+                return self.response(Status.ERROR, f"League not found for id: {league_id}.")            
+    
+        return self.result(Status.SUCCESS, league.get_attributes())
+
+class UpdateLeagueUseCase(UseCase):
+
+    def execute(self, parameters: dict) -> dict:
+        league_id: int = parameters["league_id"]
+        with self.unit_of_work:
+            league = self.unit_of_work.repository.get_league_by_id(league_id)
+
+            if not league:
+                return self.response(Status.ERROR, f"League not found for id: {league_id}.")
+            
+            update_attributes(league, parameters)
+            self.unit_of_work.repository.save_league(league)
+            self.unit_of_work.commit()
+    
+        message = f"League (Id = {league_id})' successfully updated."
+        return self.response(Status.SUCCESS, message)
+    
+class DeleteLeagueUseCase(UseCase):
+
+    def execute(self, parameters: dict) -> dict:
+        league_id: int = parameters["league_id"]
+        with self.unit_of_work:
+            
+            deleted = self.unit_of_work.repository.delete_league(league_id)
+            if not deleted:
+                return self.response(Status.ERROR, f"League not found for id: {league_id}.")
+
+            self.unit_of_work.commit()
+    
+        message = f"League (Id = {league_id})' successfully deleted."
+        return self.response(Status.SUCCESS, message)
